@@ -1,0 +1,89 @@
+# Test data for PowerSam disassembler supplied as comma-separated values
+# Data format:
+# instruction address (hex), instruction code (hex), expected disassembly: opcode, [operands...]
+# (lines starting with "#" will be treated as comments and ignored)
+
+# branches
+0xFFF03008,0x48000355,bl,0xFFF0335C
+
+# indexed load/store instructions, primary opcode 0x1F
+0xFFF00100,0x7D49F02E,lwzx,r10,r9,r30
+0xFFF00100,0x7FAB806E,lwzux,r29,r11,r16
+0xFFF00100,0x7C0820AE,lbzx,r0,r8,r4
+0xFFF00100,0x7F47E8EE,lbzux,r26,r7,r29
+0xFFF00100,0x7C01612E,stwx,r0,r1,r12
+0xFFF00100,0x7FC3996E,stwux,r30,r3,r19
+0xFFF00100,0x7D2C09AE,stbx,r9,r12,r1
+0xFFF00100,0x7C8531EE,stbux,r4,r5,r6
+0xFFF00100,0x7C94DA2E,lhzx,r4,r20,r27
+0xFFF00100,0x7C833A6E,lhzux,r4,r3,r7
+0xFFF00100,0x7D8F62AE,lhax,r12,r15,r12
+0xFFF00100,0x7C98DAEE,lhaux,r4,r24,r27
+0xFFF00100,0x7C0C0B2E,sthx,r0,r12,r1
+0xFFF00100,0x7C032B6E,sthux,r0,r3,r5
+0xFFF00100,0x7C43242E,lfsx,fp2,r3,r4
+0xFFF00100,0x7C43246E,lfsux,fp2,r3,r4
+0xFFF00100,0x7D491CAE,lfdx,fp10,r9,r3
+0xFFF00100,0x7C4324EE,lfdux,fp2,r3,r4
+0xFFF00100,0x7C43252E,stfsx,fp2,r3,r4
+0xFFF00100,0x7C43256E,stfsux,fp2,r3,r4
+0xFFF00100,0x7C4325AE,stfdx,fp2,r3,r4
+0xFFF00100,0x7C4325EE,stfdux,fp2,r3,r4
+
+# subtracts and friends, primary opcode 0x1F
+0xFFF00100,0x7C03E810,subfc,r0,r3,r29
+0xFFF00100,0x7CE03011,subfc.,r7,r0,r6
+0xFFF00100,0x7CC47C10,subfco,r6,r4,r15
+0xFFF00100,0x7CC46C11,subfco.,r6,r4,r13
+0xFFF00100,0x7D800850,subf,r12,r0,r1
+0xFFF00100,0x7C966851,subf.,r4,r22,r13
+0xFFF00100,0x7C7B8C50,subfo,r3,r27,r17
+0xFFF00100,0x7D283C51,subfo.,r9,r8,r7
+0xFFF00100,0x7CE400D0,neg,r7,r4
+0xFFF00100,0x7CC900D1,neg.,r6,r9
+0xFFF00100,0x7C6B04D0,nego,r3,r11
+0xFFF00100,0x7FC004D1,nego.,r30,r0
+0xFFF00100,0x7D266110,subfe,r9,r6,r12
+0xFFF00100,0x7C693111,subfe.,r3,r9,r6
+0xFFF00100,0x7C642D10,subfeo,r3,r4,r5
+0xFFF00100,0x7C843511,subfeo.,r4,r4,r6
+0xFFF00100,0x7D6B0190,subfze,r11,r11
+0xFFF00100,0x7D290191,subfze.,r9,r9
+0xFFF00100,0x7D2A1A10,doz,r9,r10,r3
+0xFFF00100,0x7C1E02D0,abs,r0,r30
+0xFFF00100,0x7CE703D0,nabs,r7,r7
+
+# logical instructions, primary opcode 0x1F
+0xFFF00100,0x7FC32838,and,r3,r30,r5
+0xFFF00100,0x7C672039,and.,r7,r3,r4
+0xFFF00100,0x7D281878,andc,r8,r9,r3
+0xFFF00100,0x7DCE0079,andc.,r14,r14,r0
+0xFFF00100,0x7C8328F8,nor,r3,r4,r5
+0xFFF00100,0x7D4948F9,nor.,r9,r10,r9
+0xFFF00100,0x7ED53A38,eqv,r21,r22,r7
+0xFFF00100,0x7C622239,eqv.,r2,r3,r4
+0xFFF00100,0x7D645278,xor,r4,r11,r10
+0xFFF00100,0x7C600279,xor.,r0,r3,r0
+0xFFF00100,0x7C841B38,orc,r4,r4,r3
+0xFFF00100,0x7C841B39,orc.,r4,r4,r3
+0xFFF00100,0x7DE42378,or,r4,r15,r4
+0xFFF00100,0x7C632379,or.,r3,r3,r4
+0xFFF00100,0x7C6023B8,nand,r0,r3,r4
+0xFFF00100,0x7F8B63B9,nand.,r11,r28,r12
+
+# trap instructions
+0xFFF00100,0x7F800008,tw,28,r0,r0
+
+# various simplified (extended) mnemonics
+0xFFF00100,0x60000000,nop
+0xFFF00100,0x7C7C1B78,mr,r28,r3
+0xFFF00100,0x7C7C1B78,mr,r28,r3
+0xFFF00100,0x7DAA6B79,mr.,r10,r13
+
+# invalid opcodes/instruction forms
+0xFFF00100,0x7D49F02F,dc.l,0x7D49F02F
+0xFFF00100,0x7F800009,dc.l,0x7F800009
+0xFFF00100,0x7C6B0CD0,dc.l,0x7C6B0CD0
+
+# POWER/PPC601 specific instructions
+#0xFFF00100,0x7E3EE43A,maskir,r30,r17,r28
