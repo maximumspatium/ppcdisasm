@@ -19,6 +19,10 @@ std::string my_sprintf(const char* format, Args... args)
     return str;
 }
 
+const char *arith_im_mnem[9] = {
+    "mulli", "subfic", "", "", "", "addic", "addic.", "addi", "addis"
+};
+
 const char *bx_mnem[4] = {
     "b", "bl", "ba", "bla"
 };
@@ -69,9 +73,15 @@ void fmt_threeop(string& buf, const char *opc, int dst, int src1, int src2)
     buf = my_sprintf("%-8sr%d, r%d, r%d", opc, dst, src1, src2);
 }
 
-void fmt_threeop_imm(string& buf, const char *opc, int dst, int src1, int imm)
+void fmt_threeop_uimm(string& buf, const char *opc, int dst, int src1, int imm)
 {
     buf = my_sprintf("%-8sr%d, r%d, 0x%04X", opc, dst, src1, imm);
+}
+
+void fmt_threeop_simm(string& buf, const char *opc, int dst, int src1, int imm)
+{
+    buf = my_sprintf("%-8sr%d, r%d, %s0x%X", opc, dst, src1,
+                    (imm < 0) ? "-" : "", abs(imm));
 }
 
 void opc_illegal(PPCDisasmContext *ctx)
@@ -89,14 +99,18 @@ void opc_group4(PPCDisasmContext *ctx)
     printf("Altivec group 4 not supported yet\n");
 }
 
-void opc_mulli(PPCDisasmContext *ctx)
+void opc_ar_im(PPCDisasmContext *ctx)
 {
-    //return "DEADBEEF";
-}
+    auto ra     = (ctx->instr_code >> 16) & 0x1F;
+    auto rd     = (ctx->instr_code >> 21) & 0x1F;
+    int32_t imm = SIGNEXT(ctx->instr_code & 0xFFFF, 15);
 
-void opc_subfic(PPCDisasmContext *ctx)
-{
-    //return "DEADBEEF";
+    if ((ctx->instr_code >> 26) == 0xE && !ra && ctx->simplified) {
+        fmt_twoop_imm(ctx->instr_str, "li", rd, imm);
+    } else {
+        fmt_threeop_simm(ctx->instr_str, arith_im_mnem[(ctx->instr_code >> 26) - 7],
+                         rd, ra, imm);
+    }
 }
 
 void power_dozi(PPCDisasmContext *ctx)
@@ -112,28 +126,6 @@ void opc_cmpli(PPCDisasmContext *ctx)
 void opc_cmpi(PPCDisasmContext *ctx)
 {
     //return "DEADBEEF";
-}
-
-void opc_addic(PPCDisasmContext *ctx)
-{
-    //return "DEADBEEF";
-}
-
-void opc_addicdot(PPCDisasmContext *ctx)
-{
-    //return "DEADBEEF";
-}
-
-void opc_addi(PPCDisasmContext *ctx)
-{
-    auto ra  = (ctx->instr_code >> 16) & 0x1F;
-    auto rd  = (ctx->instr_code >> 21) & 0x1F;
-    auto imm = ctx->instr_code & 0xFFFF;
-
-    if (ra == 0 && ctx->simplified)
-        fmt_twoop_imm(ctx->instr_str, "li", rd, imm);
-    else
-        fmt_threeop_imm(ctx->instr_str, "addi", rd, ra, imm);
 }
 
 void generic_bcx(PPCDisasmContext *ctx, uint32_t bo, uint32_t bi, uint32_t dst)
@@ -226,7 +218,7 @@ void opc_ori(PPCDisasmContext *ctx)
         fmt_twoop(ctx->instr_str, "mr", ra, rs);
         return;
     }
-    fmt_threeop_imm(ctx->instr_str, "ori", ra, rs, imm);
+    fmt_threeop_uimm(ctx->instr_str, "ori", ra, rs, imm);
 }
 
 void opc_group31(PPCDisasmContext *ctx)
@@ -352,9 +344,9 @@ void opc_group31(PPCDisasmContext *ctx)
 /** main dispatch table. */
 static std::function<void(PPCDisasmContext*)> OpcodeDispatchTable[64] = {
     opc_illegal,   opc_illegal,   opc_illegal,   opc_twi,
-    opc_group4,    opc_illegal,   opc_illegal,   opc_mulli,
-    opc_subfic,    power_dozi,    opc_cmpli,     opc_cmpi,
-    opc_addic,     opc_addicdot,  opc_addi,      opc_illegal,
+    opc_group4,    opc_illegal,   opc_illegal,   opc_ar_im,
+    opc_ar_im,     power_dozi,    opc_cmpli,     opc_cmpi,
+    opc_ar_im,     opc_ar_im,     opc_ar_im,     opc_ar_im,
     opc_bcx,       opc_illegal,   opc_bx,        opc_illegal,
     opc_illegal,   opc_illegal,   opc_illegal,   opc_illegal,
     opc_ori,       opc_illegal,   opc_illegal,   opc_illegal,

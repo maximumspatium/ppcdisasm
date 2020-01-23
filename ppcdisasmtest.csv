@@ -1,4 +1,4 @@
-# Test data for PowerSam disassembler supplied as comma-separated values
+# Test data for PowerPC disassembler supplied as comma-separated values
 # Data format:
 # instruction address (hex), instruction code (hex), expected disassembly: opcode, [operands...]
 # (lines starting with "#" will be treated as comments and ignored)
@@ -37,6 +37,20 @@
 0xFFF00100,0x7C43256E,stfsux,fp2,r3,r4
 0xFFF00100,0x7C4325AE,stfdx,fp2,r3,r4
 0xFFF00100,0x7C4325EE,stfdux,fp2,r3,r4
+
+# arithmetic instructions with immediate operand
+0xFFF00100,0x1F00A81A,mulli,r24,r0,-0x57E6
+0xFFF00100,0x1D8A4CCC,mulli,r12,r10,0x4CCC
+0xFFF00100,0x207CFEE0,subfic,r3,r28,-0x120
+0xFFF00100,0x20894E75,subfic,r4,r9,0x4E75
+0xFFF00100,0x38BE0000,addi,r5,r30,0x0
+0xFFF00100,0x3A2EFFF0,addi,r17,r14,-0x10
+0xFFF00100,0x38000000,li,r0,0x0000
+0xFFF00100,0x307F005E,addic,r3,r31,0x5E
+0xFFF00100,0x30C4FFFF,addic,r6,r4,-0x1
+0xFFF00100,0x34803012,addic.,r4,r0,0x3012
+0xFFF00100,0x3E1F4A47,addis,r16,r31,0x4A47
+0xFFF00100,0x3F3CFFF6,addis,r25,r28,-0xA
 
 # subtracts and friends, primary opcode 0x1F
 0xFFF00100,0x7C03E810,subfc,r0,r3,r29
