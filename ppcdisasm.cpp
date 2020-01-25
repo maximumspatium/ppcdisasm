@@ -56,6 +56,11 @@ const char *opc_muldivs[16] = { /* multiply and division instructions */
     "", "", "divwu", "divw"
 };
 
+const char *opc_int_ldst[16] = { /* integer load and store instructions */
+    "lwz", "lwzu", "lbz", "lbzu", "stw", "stwu", "stb", "stbu", "lhz", "lhzu",
+    "lha", "lhau", "sth", "sthu", "lmw", "stmw"
+};
+
 
 /** various formatting helpers. */
 void fmt_twoop(string& buf, const char *opc, int dst, int src)
@@ -63,9 +68,9 @@ void fmt_twoop(string& buf, const char *opc, int dst, int src)
     buf = my_sprintf("%-8sr%d, r%d", opc, dst, src);
 }
 
-void fmt_twoop_imm(string& buf, const char *opc, int dst, int imm)
+void fmt_twoop_simm(string& buf, const char *opc, int dst, int imm)
 {
-    buf = my_sprintf("%-8sr%d, 0x%04X", opc, dst, imm);
+    buf = my_sprintf("%-8sr%d, %s0x%X", opc, dst, (imm < 0) ? "-" : "", abs(imm));
 }
 
 void fmt_threeop(string& buf, const char *opc, int dst, int src1, int src2)
@@ -106,7 +111,7 @@ void opc_ar_im(PPCDisasmContext *ctx)
     int32_t imm = SIGNEXT(ctx->instr_code & 0xFFFF, 15);
 
     if ((ctx->instr_code >> 26) == 0xE && !ra && ctx->simplified) {
-        fmt_twoop_imm(ctx->instr_str, "li", rd, imm);
+        fmt_twoop_simm(ctx->instr_str, "li", rd, imm);
     } else {
         fmt_threeop_simm(ctx->instr_str, arith_im_mnem[(ctx->instr_code >> 26) - 7],
                          rd, ra, imm);
@@ -341,6 +346,30 @@ void opc_group31(PPCDisasmContext *ctx)
     }
 }
 
+void opc_intldst(PPCDisasmContext *ctx)
+{
+    int32_t opcode = (ctx->instr_code >> 26) - 32;
+    int32_t ra     = (ctx->instr_code >> 16) & 0x1F;
+    int32_t rd     = (ctx->instr_code >> 21) & 0x1F;
+    int32_t imm    = SIGNEXT(ctx->instr_code & 0xFFFF, 15);
+
+    /* ra = 0 is forbidden for loads and stores with update */
+    /* ra = rd is forbidden for loads with update */
+    if (((opcode < 14) && (opcode & 5) == 1 && ra == rd) || ((opcode & 1) && !ra))
+    {
+        opc_illegal(ctx);
+        return;
+    }
+
+    if (ra) {
+        ctx->instr_str = my_sprintf("%-8sr%d, %s0x%X(r%d)", opc_int_ldst[opcode],
+            rd, ((imm < 0) ? "-" : ""), abs(imm), ra);
+    } else {
+        ctx->instr_str = my_sprintf("%-8sr%d, %s0x%X", opc_int_ldst[opcode],
+            rd, ((imm < 0) ? "-" : ""), abs(imm));
+    }
+}
+
 /** main dispatch table. */
 static std::function<void(PPCDisasmContext*)> OpcodeDispatchTable[64] = {
     opc_illegal,   opc_illegal,   opc_illegal,   opc_twi,
@@ -351,10 +380,10 @@ static std::function<void(PPCDisasmContext*)> OpcodeDispatchTable[64] = {
     opc_illegal,   opc_illegal,   opc_illegal,   opc_illegal,
     opc_ori,       opc_illegal,   opc_illegal,   opc_illegal,
     opc_illegal,   opc_illegal,   opc_illegal,   opc_group31,
-    opc_illegal,   opc_illegal,   opc_illegal,   opc_illegal,
-    opc_illegal,   opc_illegal,   opc_illegal,   opc_illegal,
-    opc_illegal,   opc_illegal,   opc_illegal,   opc_illegal,
-    opc_illegal,   opc_illegal,   opc_illegal,   opc_illegal,
+    opc_intldst,   opc_intldst,   opc_intldst,   opc_intldst,
+    opc_intldst,   opc_intldst,   opc_intldst,   opc_intldst,
+    opc_intldst,   opc_intldst,   opc_intldst,   opc_intldst,
+    opc_intldst,   opc_intldst,   opc_intldst,   opc_intldst,
     opc_illegal,   opc_illegal,   opc_illegal,   opc_illegal,
     opc_illegal,   opc_illegal,   opc_illegal,   opc_illegal,
     opc_illegal,   opc_illegal,   opc_illegal,   opc_illegal,
