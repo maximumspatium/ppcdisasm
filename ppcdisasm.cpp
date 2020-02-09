@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <functional>
 #include "ppcdisasm.h"
 
 using namespace std;

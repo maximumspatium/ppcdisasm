@@ -45,8 +45,8 @@ vector<PPCDisasmContext> read_test_data()
         }
 
         ctx = {0};
-        ctx.instr_addr = stol(tokens[0], NULL, 16);
-        ctx.instr_code = stol(tokens[1], NULL, 16);
+        ctx.instr_addr = stoul(tokens[0], NULL, 16);
+        ctx.instr_code = stoul(tokens[1], NULL, 16);
 
         /* build disassembly string out of comma-separated parts */
         ostringstream idisasm;
